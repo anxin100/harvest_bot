@@ -1,0 +1,35 @@
+version: "3.5"
+networks:
+  default:
+    name: harvest-bot
+
+services:
+  harvest-mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/harvest-mongodb/db:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE="harvest_bot"
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 1s
+
+  harvest_bot:
+    image: liuxuzhong/harvest_bot
+    container_name: harvest_bot
+    entrypoint: /usr/bin/harvest_bot
+    ports:
+      - "9000:9000"
+    depends_on:
+      - harvest-mongodb
+    volumes:
+      - "/etc/localtime:/etc/localtime"
+      - ./conf/harvest_bot/conf:/root/conf
+    networks:
+      - default
